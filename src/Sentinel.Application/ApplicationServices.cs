@@ -1,4 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Sentinel.Application.Features.Proxy;
+using Sentinel.Application.Guardrails;
 
 namespace Sentinel.Application;
 
@@ -7,6 +10,8 @@ internal static class ApplicationServices
 {
     public static void Register(IServiceCollection services)
     {
-        _ = services;
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddScoped<IPromptGuard, PromptGuard>();
+        services.AddScoped<IChatProxyService, ChatProxyService>();
     }
 }
