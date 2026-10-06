@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Sentinel: local SQLite development databases and eval outputs
+*.db
+*.db-shm
+*.db-wal
+eval/out/
