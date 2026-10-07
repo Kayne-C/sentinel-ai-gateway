@@ -5,8 +5,8 @@ using Sentinel.Infrastructure.Persistence;
 namespace Sentinel.Infrastructure.Knowledge;
 
 /// <summary>
-/// Vector search for providers without a usable native vector function (SQLite for development and API tests,
-/// Oracle until its AI Vector Search is wired up). One SQL query streams the tenant's authorised, non-quarantined
+/// Vector search for SQLite, the zero-dependency provider for development and API tests (SQL Server uses its native
+/// <c>VECTOR_DISTANCE</c>). One SQL query streams the tenant's authorised, non-quarantined
 /// chunks - the same tenant and ACL predicates as on SQL Server, so unauthorised rows never leave the database - and
 /// cosine similarity is computed in process with a bounded top-k heap.
 /// </summary>

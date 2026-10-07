@@ -1,7 +1,6 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Oracle.ManagedDataAccess.Client;
 
 namespace Sentinel.Infrastructure.Persistence;
 
@@ -10,7 +9,6 @@ public sealed class SentinelDbContext(DbContextOptions<SentinelDbContext> option
     public DatabaseProvider Provider => Database.ProviderName switch
     {
         "Microsoft.EntityFrameworkCore.SqlServer" => DatabaseProvider.SqlServer,
-        "Oracle.EntityFrameworkCore" => DatabaseProvider.Oracle,
         _ => DatabaseProvider.Sqlite,
     };
 
@@ -31,7 +29,6 @@ public sealed class SentinelDbContext(DbContextOptions<SentinelDbContext> option
     public static bool IsConcurrencyFailure(DbUpdateException exception) => exception.InnerException switch
     {
         SqlException sql => sql.Number is 2601 or 2627 or 1205,
-        OracleException oracle => oracle.Number is 1 or 60,
         SqliteException sqlite => sqlite.SqliteErrorCode == 19 || sqlite.SqliteExtendedErrorCode is 2067 or 1555,
         _ => false,
     };

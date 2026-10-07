@@ -46,7 +46,7 @@ internal sealed class DocumentPrincipalRecord
 
 /// <summary>
 /// A stored chunk. Exactly one of the two embedding properties is mapped, depending on the provider: SQL Server
-/// 2025 stores a native <c>vector(384)</c>; SQLite and Oracle store little-endian float32 bytes.
+/// 2025 stores a native <c>vector(384)</c>; SQLite stores little-endian float32 bytes.
 /// </summary>
 internal sealed class ChunkRecord
 {
@@ -69,6 +69,6 @@ internal sealed class ChunkRecord
     /// <summary>SQL Server only.</summary>
     public SqlVector<float> Vector { get; set; }
 
-    /// <summary>SQLite and Oracle only.</summary>
+    /// <summary>SQLite only.</summary>
     public byte[]? EmbeddingBytes { get; set; }
 }

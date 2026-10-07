@@ -7,9 +7,6 @@ public enum DatabaseProvider
 
     /// <summary>SQL Server 2025 / Azure SQL: native <c>vector</c> type and <c>VECTOR_DISTANCE</c>, ledger tables.</summary>
     SqlServer,
-
-    /// <summary>Oracle Database 23ai: AI Vector Search (<c>VECTOR</c> type), immutable tables.</summary>
-    Oracle,
 }
 
 public sealed class DatabaseOptions

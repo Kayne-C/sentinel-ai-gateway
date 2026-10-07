@@ -15,7 +15,6 @@ namespace Sentinel.Infrastructure;
 public static class DependencyInjection
 {
     public const string SqlServerMigrationsAssembly = "Sentinel.Migrations.SqlServer";
-    public const string OracleMigrationsAssembly = "Sentinel.Migrations.Oracle";
 
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
@@ -34,9 +33,6 @@ public static class DependencyInjection
                         .MigrationsAssembly(SqlServerMigrationsAssembly)
                         .UseCompatibilityLevel(170)
                         .EnableRetryOnFailure(maxRetryCount: 5));
-                    break;
-                case DatabaseProvider.Oracle:
-                    options.UseOracle(database.ConnectionString, oracle => oracle.MigrationsAssembly(OracleMigrationsAssembly));
                     break;
                 default:
                     options.UseSqlite(database.ConnectionString);
