@@ -18,7 +18,8 @@ internal static class InjectionEval
 {
     private sealed record Sample(string Text, bool Attack, string Category);
 
-    public static async Task RunAsync(double threshold, bool useDeepset)
+    /// <returns>Recall and false-positive rate on the internal set, so callers can gate on them.</returns>
+    public static async Task<(double Recall, double FalsePositiveRate)> RunAsync(double threshold, bool useDeepset)
     {
         var provider = new ServiceCollection()
             .AddGuardrails(new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Guardrails:Injection:BlockThreshold"] = threshold.ToString(System.Globalization.CultureInfo.InvariantCulture) }).Build())
@@ -58,7 +59,13 @@ internal static class InjectionEval
 
         Report.Save("injection", new { threshold, internalSet = ownResult, deepset = deepsetResult });
         Report.Save("injection-samples", exported);
+
+        var internalConfusion = ownResult;
+        return (Recall: (double)ReadInt(internalConfusion, "TruePositives") / Math.Max(1, ReadInt(internalConfusion, "attacks")),
+            FalsePositiveRate: (double)ReadInt(internalConfusion, "FalsePositives") / Math.Max(1, ReadInt(internalConfusion, "benign")));
     }
+
+    private static int ReadInt(object result, string name) => (int)result.GetType().GetProperty(name)!.GetValue(result)!;
 
     private static async Task<object> Evaluate(IPromptInjectionDetector detector, IReadOnlyList<Sample> samples, string name)
     {

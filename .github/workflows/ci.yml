@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore Sentinel.slnx
+
+      - name: Build (warnings are errors)
+        run: dotnet build Sentinel.slnx -c Release --no-restore
+
+      # GitHub-hosted runners have Docker, so the integration tests run against a real SQL Server 2025 (native vectors,
+      # ledger tables) and Redis 8 (query engine) instead of being skipped. Ollama tests skip themselves: no models here.
+      - name: Test
+        run: dotnet test --solution Sentinel.slnx -c Release --no-build
+
+      - name: Vulnerable packages (direct and transitive)
+        run: |
+          dotnet list Sentinel.slnx package --vulnerable --include-transitive 2>&1 | tee vulnerabilities.txt
+          if grep -q "has the following vulnerable packages" vulnerabilities.txt; then echo "::error::vulnerable packages found"; exit 1; fi
+
+      - name: EF Core migrations match the model
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.0.12
+          dotnet ef migrations has-pending-model-changes \
+            --project src/Sentinel.Migrations.SqlServer \
+            --startup-project src/Sentinel.Migrations.SqlServer \
+            --configuration Release --no-build
+
+      # Regression gates on the guardrails: synthetic PII set (precision/recall) and the internal injection set.
+      - name: PII redaction quality gate
+        run: dotnet run --project eval/Sentinel.Evals -c Release --no-build -- pii --min-precision=0.99 --min-recall=0.99
+      - name: Prompt-injection quality gate (internal set)
+        run: dotnet run --project eval/Sentinel.Evals -c Release --no-build -- injection --no-deepset --min-recall=0.65 --max-fpr=0.05
+
+  helm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Lint and render
+        run: |
+          helm lint deploy/helm/sentinel \
+            --set auth.clientId=00000000-0000-0000-0000-000000000000 \
+            --set 'auth.allowedTenants={11111111-1111-1111-1111-111111111111}' \
+            --set secrets.existingSecret=sentinel-secrets \
+            --set ai.endpoint=https://example.openai.azure.com/openai/v1/
+          helm template sentinel deploy/helm/sentinel \
+            --set auth.clientId=00000000-0000-0000-0000-000000000000 \
+            --set 'auth.allowedTenants={11111111-1111-1111-1111-111111111111}' \
+            --set secrets.existingSecret=sentinel-secrets \
+            --set ai.endpoint=https://example.openai.azure.com/openai/v1/ \
+            --set ingress.enabled=true --set ingress.tls.secretName=tls > rendered.yaml
+      - name: Validate against the Kubernetes schema
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.7.0/kubeconform-linux-amd64.tar.gz | tar xz kubeconform
+          ./kubeconform -strict -summary -kubernetes-version 1.31.0 rendered.yaml
+
+  container:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the gateway image
+        run: docker build -f src/Sentinel.Gateway/Dockerfile -t sentinel-gateway:${{ github.sha }} .

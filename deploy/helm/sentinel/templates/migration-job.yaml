@@ -1,0 +1,42 @@
+{{- if .Values.database.runMigrations }}
+# Applies the EF Core migrations (native vector columns, the append-only audit ledger table) before pods of a new version
+# start. Needs the secret to exist already (a Helm hook runs before the release's own resources are created).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "sentinel.fullname" . }}-migrate
+  labels: {{- include "sentinel.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels: {{- include "sentinel.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: OnFailure
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: migrate
+          image: {{ include "sentinel.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["--migrate-only"]
+          env:
+            {{- include "sentinel.env" . | nindent 12 }}
+            - { name: Database__ApplyMigrationsOnStartup, value: "true" }
+          securityContext: {{- include "sentinel.containerSecurityContext" . | nindent 12 }}
+          resources:
+            requests: { cpu: 100m, memory: 192Mi }
+            limits: { memory: 384Mi }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - { name: tmp, emptyDir: { sizeLimit: 32Mi } }
+{{- end }}

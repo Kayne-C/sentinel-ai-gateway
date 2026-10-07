@@ -1,0 +1,94 @@
+{
+  "thresholdSweep": {
+    "rows": [
+      {
+        "threshold": 0.7,
+        "paraphraseCorrect": 28,
+        "paraphraseWrong": 15,
+        "paraphraseTotal": 60,
+        "nearMissServed": 19,
+        "nearMissTotal": 30
+      },
+      {
+        "threshold": 0.75,
+        "paraphraseCorrect": 22,
+        "paraphraseWrong": 14,
+        "paraphraseTotal": 60,
+        "nearMissServed": 18,
+        "nearMissTotal": 30
+      },
+      {
+        "threshold": 0.8,
+        "paraphraseCorrect": 15,
+        "paraphraseWrong": 9,
+        "paraphraseTotal": 60,
+        "nearMissServed": 11,
+        "nearMissTotal": 30
+      },
+      {
+        "threshold": 0.85,
+        "paraphraseCorrect": 8,
+        "paraphraseWrong": 2,
+        "paraphraseTotal": 60,
+        "nearMissServed": 7,
+        "nearMissTotal": 30
+      },
+      {
+        "threshold": 0.9,
+        "paraphraseCorrect": 2,
+        "paraphraseWrong": 1,
+        "paraphraseTotal": 60,
+        "nearMissServed": 4,
+        "nearMissTotal": 30
+      },
+      {
+        "threshold": 0.92,
+        "paraphraseCorrect": 1,
+        "paraphraseWrong": 0,
+        "paraphraseTotal": 60,
+        "nearMissServed": 2,
+        "nearMissTotal": 30
+      },
+      {
+        "threshold": 0.95,
+        "paraphraseCorrect": 0,
+        "paraphraseWrong": 0,
+        "paraphraseTotal": 60,
+        "nearMissServed": 0,
+        "nearMissTotal": 30
+      }
+    ],
+    "paraphraseMedian": 0.7796504384864067,
+    "nearMissMedian": 0.7723305198220951,
+    "nearMissP90": 0.9012356908668862
+  },
+  "retrieval": {
+    "questions": 34,
+    "hitAt1": 20,
+    "hitAt3": 25,
+    "mrr": 0.7088935574229691,
+    "medianSimilarity": 0.6705000586125043,
+    "p10Similarity": 0.5054784045408458
+  },
+  "endToEnd": {
+    "persona": "deniz",
+    "paraphraseHit": 0,
+    "paraphraseTotal": 33,
+    "nearMissHit": 1,
+    "nearMissTotal": 17,
+    "benignQuestionsRefused": 4,
+    "benignQuestionsAnswered": 68,
+    "missLatencyMs": {
+      "p50": 1364.8313,
+      "p95": 4699.49202,
+      "n": 67
+    },
+    "hitLatencyMs": {
+      "p50": 263.2755,
+      "p95": 263.2755,
+      "n": 1
+    },
+    "costAvoidedUsd": 0,
+    "costSpentUsd": 0.00790335
+  }
+}

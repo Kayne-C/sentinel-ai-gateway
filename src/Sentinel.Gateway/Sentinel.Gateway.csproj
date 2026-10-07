@@ -5,6 +5,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Sentinel.Infrastructure\Sentinel.Infrastructure.csproj" />
+    <!-- Shipped with the gateway so one image can run the schema migration (migrate-only mode) and the service. -->
+    <ProjectReference Include="..\Sentinel.Migrations.SqlServer\Sentinel.Migrations.SqlServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>

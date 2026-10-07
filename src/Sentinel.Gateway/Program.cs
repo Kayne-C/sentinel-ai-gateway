@@ -101,6 +101,11 @@ if (app.Configuration.GetValue("Gateway:ExposeApiDocs", app.Environment.IsDevelo
 }
 
 await app.Services.InitializeDatabaseAsync();
+if (args.Contains("--migrate-only", StringComparer.Ordinal))
+{
+    return; // used by the deployment's migration job: apply the schema and exit
+}
+
 if (authMode == AuthMode.Development && app.Configuration.GetValue("Demo:SeedOnStartup", false))
 {
     await DemoSeeder.SeedAsync(app.Services, app.Services.GetRequiredService<DemoCorpus>(), app.Logger, app.Lifetime.ApplicationStopping);

@@ -1,0 +1,114 @@
+# Sentinel gateway. Everything secret lives in an existing Secret (see `secrets.existingSecret`), never in values.
+
+image:
+  repository: sentinel-gateway
+  tag: ""            # defaults to the chart's appVersion
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+auth:
+  # Microsoft Entra ID access tokens. `Development` (locally signed demo tokens) is refused outside the Development
+  # environment unless explicitly acknowledged; it has no place in a cluster.
+  mode: Entra
+  tenantId: organizations        # a tenant id for single-tenant apps; `organizations` for multi-tenant
+  clientId: ""                   # application (client) id of the gateway's app registration (required)
+  audiences: []                  # default: api://<clientId> and <clientId>
+  allowedTenants: []             # Entra tenant ids served by this gateway (required; empty serves nobody)
+
+database:
+  # SQL Server 2025 or Azure SQL (native vector type, ledger tables). The connection string is read from the secret.
+  runMigrations: true            # pre-install/upgrade Job that applies the EF Core migrations
+
+ai:
+  provider: OpenAICompatible     # OpenAICompatible | AzureOpenAI
+  endpoint: ""                   # e.g. https://<resource>.openai.azure.com/openai/v1/ (Azure) or an OpenAI-compatible URL
+  embeddingModel: text-embedding-3-small
+  sendEmbeddingDimensions: true  # text-embedding-3-* must be asked for 384 dimensions
+  # Embedding-based injection classifier. Trained on all-minilm:l6-v2 vectors only: enabling it with another embedding
+  # model fails the pod at startup instead of scoring nonsense.
+  learnedInjection: false
+  contentSafety:
+    enabled: false               # Azure AI Content Safety Prompt Shields as an additional detector
+    endpoint: ""
+
+models:
+  defaultTier: fast
+  tiers:
+    fast:
+      model: gpt-4.1-mini
+      inputPricePer1MTokens: 0.40
+      outputPricePer1MTokens: 1.60
+      maxOutputTokens: 512
+    reasoning:
+      model: gpt-4.1
+      inputPricePer1MTokens: 2.00
+      outputPricePer1MTokens: 8.00
+      maxOutputTokens: 1024
+
+budgets:
+  tenantMonthlyTokens: 2000000
+  subjectDailyTokens: 100000
+
+rag:
+  topK: 6
+  minSimilarity: 0.25
+
+semanticCache:
+  similarityThreshold: 0.92
+  ttl: "24:00:00"
+
+audit:
+  storeRedactedPrompts: false
+
+rateLimiting:
+  requestsPerSecondPerSubject: 20
+  burst: 40
+
+secrets:
+  # Must exist before the release is installed. Keys:
+  #   DATABASE_CONNECTION_STRING   SQL Server connection string
+  #   REDIS_CONNECTION_STRING      host:port[,password=...,ssl=true]
+  #   AI_API_KEY                   provider key (Ollama accepts any value)
+  #   CONTENT_SAFETY_API_KEY       only when ai.contentSafety.enabled
+  existingSecret: ""
+
+observability:
+  otlpEndpoint: ""               # e.g. http://otel-collector.observability:4317
+
+service:
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: sentinel.example.com
+  tls:
+    secretName: ""
+
+resources:
+  requests: { cpu: 250m, memory: 384Mi }
+  limits: { memory: 768Mi }
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  minAvailable: 1
+
+networkPolicy:
+  enabled: true
+  ingressFrom:                   # who may reach the gateway: by default only the ingress controller's namespace
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+  egress:                        # database, Redis and the model endpoint (plus DNS and Entra, added below)
+    - ports: [{ port: 1433 }, { port: 6379 }, { port: 443 }]
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

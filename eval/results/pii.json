@@ -1,0 +1,106 @@
+{
+  "seed": 20261007,
+  "positives": 2000,
+  "negatives": 1000,
+  "overall": {
+    "truePositives": 2400,
+    "falsePositives": 3,
+    "falseNegatives": 0,
+    "precision": 0.9987515605493134,
+    "recall": 1,
+    "f1": 0.9993753903810119
+  },
+  "perType": {
+    "NationalId": {
+      "truePositives": 342,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    },
+    "TaxNumber": {
+      "truePositives": 357,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    },
+    "Iban": {
+      "truePositives": 330,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    },
+    "PaymentCard": {
+      "truePositives": 344,
+      "falsePositives": 3,
+      "falseNegatives": 0,
+      "precision": 0.9913544668587896,
+      "recall": 1,
+      "f1": 0.9956584659913169
+    },
+    "PhoneNumber": {
+      "truePositives": 326,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    },
+    "Email": {
+      "truePositives": 349,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    },
+    "IpAddress": {
+      "truePositives": 352,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    }
+  },
+  "perGroup": {
+    "standard": {
+      "truePositives": 1759,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    },
+    "negative": {
+      "truePositives": 0,
+      "falsePositives": 3,
+      "falseNegatives": 0,
+      "precision": 0,
+      "recall": 1,
+      "f1": 0
+    },
+    "variant": {
+      "truePositives": 641,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    }
+  },
+  "negativesWithFalseAlarm": 3,
+  "negativeExamples": 1000,
+  "millisecondsPerExample": 0.23983476666666664,
+  "missedSamples": [],
+  "falseAlarmSamples": [
+    "PaymentCard: \u00224864856379071840\u0022 in \u0022Referans: 4864856379071840\u0022",
+    "PaymentCard: \u00224963 6912 3781 1545\u0022 in \u0022\u00DCr\u00FCn kodu TR40 4963 6912 3781 1545 11\u0022",
+    "PaymentCard: \u00225228189429655414\u0022 in \u0022Referans: 5228189429655414\u0022"
+  ]
+}

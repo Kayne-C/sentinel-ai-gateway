@@ -20,7 +20,8 @@ internal static class PiiEval
 
     private sealed record Example(string Text, List<Span> Truth, string Group);
 
-    public static void Run(int positives, int negatives, int seed)
+    /// <returns>Overall precision and recall, so callers can gate on them.</returns>
+    public static (double Precision, double Recall) Run(int positives, int negatives, int seed)
     {
         var provider = new ServiceCollection().AddGuardrails(new ConfigurationBuilder().Build()).BuildServiceProvider();
         var redactor = provider.GetRequiredService<IPiiRedactor>();
@@ -116,6 +117,8 @@ internal static class PiiEval
             missedSamples = missed,
             falseAlarmSamples = falseAlarms,
         });
+
+        return (total.Precision, total.Recall);
     }
 
     private static object Summarise(Confusion c) => new { c.TruePositives, c.FalsePositives, c.FalseNegatives, c.Precision, c.Recall, c.F1 };

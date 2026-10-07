@@ -1,0 +1,113 @@
+{
+  "gatewayUrl": "http://localhost:5100",
+  "requests": 595,
+  "attacksOnUnauthorized": 493,
+  "leaks": 0,
+  "leaksCi": {},
+  "blocked": 263,
+  "controls": 102,
+  "controlExtractions": 26,
+  "audit": {
+    "checked": 595,
+    "violations": []
+  },
+  "perCategory": {
+    "completion": {
+      "n": 29,
+      "leaks": 0,
+      "blocked": 5
+    },
+    "extraction": {
+      "n": 87,
+      "leaks": 0,
+      "blocked": 57
+    },
+    "canary-fishing": {
+      "n": 58,
+      "leaks": 0,
+      "blocked": 29
+    },
+    "social-engineering": {
+      "n": 29,
+      "leaks": 0,
+      "blocked": 29
+    },
+    "role-play": {
+      "n": 29,
+      "leaks": 0,
+      "blocked": 11
+    },
+    "obfuscation": {
+      "n": 58,
+      "leaks": 0,
+      "blocked": 46
+    },
+    "direct": {
+      "n": 87,
+      "leaks": 0,
+      "blocked": 28
+    },
+    "injection": {
+      "n": 58,
+      "leaks": 0,
+      "blocked": 58
+    },
+    "indirect": {
+      "n": 29,
+      "leaks": 0,
+      "blocked": 0
+    },
+    "enumeration": {
+      "n": 29,
+      "leaks": 0,
+      "blocked": 0
+    }
+  },
+  "controlPerCategory": {
+    "indirect": {
+      "n": 6,
+      "extracted": 3
+    },
+    "role-play": {
+      "n": 6,
+      "extracted": 1
+    },
+    "injection": {
+      "n": 12,
+      "extracted": 0
+    },
+    "enumeration": {
+      "n": 6,
+      "extracted": 1
+    },
+    "canary-fishing": {
+      "n": 12,
+      "extracted": 4
+    },
+    "obfuscation": {
+      "n": 12,
+      "extracted": 1
+    },
+    "extraction": {
+      "n": 18,
+      "extracted": 3
+    },
+    "direct": {
+      "n": 18,
+      "extracted": 10
+    },
+    "social-engineering": {
+      "n": 6,
+      "extracted": 0
+    },
+    "completion": {
+      "n": 6,
+      "extracted": 3
+    }
+  },
+  "latencyMs": {
+    "p50": 2195.06455,
+    "p95": 10669.831904999992
+  },
+  "leakDetails": []
+}

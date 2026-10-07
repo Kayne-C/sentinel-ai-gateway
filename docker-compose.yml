@@ -1,0 +1,107 @@
+# The whole system on one machine, including the language models (CPU-only, so answers take seconds):
+#
+#   docker compose up --build            # first start pulls ~1.3 GB of models
+#   curl -s -X POST localhost:8100/dev/token -H 'content-type: application/json' -d '{"persona":"ayse"}'
+#   Scalar UI: http://localhost:8100/scalar        Aspire dashboard (traces, metrics): http://localhost:18888
+#
+#   gateway ──▶ SQL Server 2025 (documents, native vectors, append-only audit ledger)
+#           ──▶ Redis 8        (semantic cache, token budgets)
+#           ──▶ Ollama         (qwen2.5 chat, all-minilm embeddings: OpenAI-compatible API)
+#
+# Demo tokens are enabled on purpose (Auth__Mode=Development): anyone who can reach port 8100 can become any demo persona.
+# Do not expose this stack to a network. Production uses Microsoft Entra ID, see deploy/helm.
+
+x-gateway-env: &gateway-env
+  ASPNETCORE_ENVIRONMENT: Docker
+  Database__Provider: SqlServer
+  Database__ConnectionString: Server=sqlserver,1433;Database=Sentinel;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Sentinel_Dev_2026!};TrustServerCertificate=True
+  SemanticCache__Provider: Redis
+  Budgets__Provider: Redis
+  ConnectionStrings__Redis: redis:6379
+  Ai__Provider: OpenAICompatible
+  Ai__Endpoint: http://ollama:11434/v1
+  Ai__ApiKey: ollama
+  Ai__EmbeddingModel: all-minilm:l6-v2
+  Rag__MinSimilarity: "0.3"
+  Guardrails__Injection__Learned__Enabled: "true"
+  Auth__Mode: Development
+  Auth__Development__AcknowledgeInsecure: "true"
+  Auth__Development__SigningKey: ${SENTINEL_DEV_SIGNING_KEY:-compose-demo-signing-key-change-me-0123456789}
+  Auth__AllowedTenants__0: 3f6a9b2e-7c41-4d8a-b5e3-2a9c4f1d7e60
+  Auth__AllowedTenants__1: 9d2e5c71-4b8f-4a36-8e1d-6c3b7a9f2d45
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
+  OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Sentinel_Dev_2026!}
+      MSSQL_MEMORY_LIMIT_MB: "3072"
+    ports: ["1433:1433"]
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -C -Q "SELECT 1" -b -o /dev/null
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:8
+    healthcheck:
+      test: redis-cli ping
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes: ["ollama:/root/.ollama"]
+    healthcheck:
+      test: ollama list
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # One-shot: downloads the models into the volume, then exits.
+  ollama-models:
+    image: ollama/ollama:latest
+    entrypoint: ["/bin/sh", "-c", "ollama pull all-minilm:l6-v2 && ollama pull qwen2.5:0.5b && ollama pull qwen2.5:1.5b"]
+    environment:
+      OLLAMA_HOST: ollama:11434
+    depends_on:
+      ollama: { condition: service_healthy }
+    restart: "no"
+
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.5
+    environment:
+      DASHBOARD__FRONTEND__AUTHMODE: Unsecured
+      DASHBOARD__OTLP__AUTHMODE: Unsecured
+    ports: ["18888:18888"]
+
+  # One-shot: applies the EF Core migrations (vector columns, append-only ledger table) and exits.
+  migrator:
+    build: { context: ., dockerfile: src/Sentinel.Gateway/Dockerfile }
+    command: ["--migrate-only"]
+    environment:
+      <<: *gateway-env
+      Database__ApplyMigrationsOnStartup: "true"
+    depends_on:
+      sqlserver: { condition: service_healthy }
+    restart: "no"
+
+  gateway:
+    build: { context: ., dockerfile: src/Sentinel.Gateway/Dockerfile }
+    environment:
+      <<: *gateway-env
+      Demo__SeedOnStartup: "true"
+      Gateway__ExposeApiDocs: "true"
+    ports: ["8100:8080"]
+    depends_on:
+      migrator: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+      ollama-models: { condition: service_completed_successfully }
+
+volumes:
+  ollama:
