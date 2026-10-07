@@ -82,18 +82,18 @@ internal sealed partial class PhoneNumberRecognizer : IPiiRecognizer
         @"|\(0?[2-58][0-9]{2}\))" +
         @"[ .-]?[0-9]{3}[ .-]?[0-9]{2}[ .-]?[0-9]{2}" +
         @"(?![\p{L}\p{N}]|[.-][0-9])",
-        RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+        RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex TurkishPrefixed();
 
     // 5xx xxx xx xx without any prefix.
     [GeneratedRegex(
         @"(?<![\p{L}\p{N}+]|[0-9][ .:/-])5[0-9]{2}[ .-]?[0-9]{3}[ .-]?[0-9]{2}[ .-]?[0-9]{2}(?![\p{L}\p{N}]|[.-][0-9])",
-        RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+        RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex TurkishBareMobile();
 
     // E.164: "+", a non-zero country digit, 7-14 more digits; single separators or a parenthesised group.
     [GeneratedRegex(
         @"(?<![\p{L}\p{N}+]|[0-9][.:/-])\+[1-9](?:(?:[ .-]|\) ?| ?\()?[0-9]){7,14}(?![\p{L}\p{N}]|[ .-][0-9])",
-        RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+        RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex International();
 }

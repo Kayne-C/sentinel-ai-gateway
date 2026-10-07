@@ -40,6 +40,6 @@ internal sealed partial class EmailRecognizer : IPiiRecognizer
         @"(?:[\p{L}\p{N}](?:[\p{L}\p{N}-]{0,61}[\p{L}\p{N}])?\.){1,6}" +
         @"(?:xn--[\p{L}\p{N}-]{1,20}|\p{L}{2,24})" +
         @"(?![\p{L}\p{N}_-]|\.[\p{L}\p{N}])",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex Candidate();
 }

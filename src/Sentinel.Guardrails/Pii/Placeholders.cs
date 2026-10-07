@@ -12,6 +12,6 @@ internal static partial class Placeholders
     /// <summary>Longest possible token ("[PHONE_123456789]" is 17); streaming holds back an open bracket this long.</summary>
     public const int MaxLength = 24;
 
-    [GeneratedRegex(@"\[(?:TCKN|VKN|IBAN|CARD|PHONE|EMAIL|IP|PII)_[1-9][0-9]{0,8}\]", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+    [GeneratedRegex(@"\[(?:TCKN|VKN|IBAN|CARD|PHONE|EMAIL|IP|PII)_[1-9][0-9]{0,8}\]", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     public static partial Regex Token();
 }

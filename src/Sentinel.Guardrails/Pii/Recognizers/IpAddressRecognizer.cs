@@ -84,12 +84,12 @@ internal sealed partial class IpAddressRecognizer : IPiiRecognizer
 
     [GeneratedRegex(
         @"(?<![\p{L}\p{N}]|[\p{N}]\.)" + Octet + @"(?:\." + Octet + @"){3}(?![\p{L}\p{N}]|\.[\p{N}])",
-        RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+        RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex V4();
 
     // Two to seven "hex:" groups (empty groups give "::") and a final hex group or embedded IPv4.
     [GeneratedRegex(
         @"(?<![\p{L}\p{N}:.])(?:[0-9A-Fa-f]{0,4}:){2,7}(?:(?:[0-9]{1,3}\.){3}[0-9]{1,3}|[0-9A-Fa-f]{0,4})(?![\p{L}\p{N}])",
-        RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+        RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex V6Candidate();
 }

@@ -138,6 +138,6 @@ internal sealed partial class PaymentCardRecognizer : IPiiRecognizer
 
     // A grouped digit run of at least 13 digits with optional single space/dash separators, not glued to letters
     // or digits and not part of a dotted number. Runs are matched greedily as a whole and split by FindCards.
-    [GeneratedRegex(@"(?<![\p{L}\p{N}]|[0-9][.-])[0-9](?:[ -]?[0-9]){12,}(?![\p{L}\p{N}]|\.[0-9])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+    [GeneratedRegex(@"(?<![\p{L}\p{N}]|[0-9][.-])[0-9](?:[ -]?[0-9]){12,}(?![\p{L}\p{N}]|\.[0-9])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex Candidate();
 }

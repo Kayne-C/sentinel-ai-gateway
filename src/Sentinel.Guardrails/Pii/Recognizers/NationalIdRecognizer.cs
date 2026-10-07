@@ -47,10 +47,10 @@ internal sealed partial class NationalIdRecognizer : IPiiRecognizer
     }
 
     // Single spaces or dashes between the groups; not a slice of a longer grouped number (card, phone, IBAN).
-    [GeneratedRegex(@"(?<![\p{L}\p{N}]|[0-9][ -])[1-9][0-9]{2}[ -][0-9]{3}[ -][0-9]{3}[ -][0-9]{2}(?![\p{L}\p{N}]|[ -][0-9])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+    [GeneratedRegex(@"(?<![\p{L}\p{N}]|[0-9][ -])[1-9][0-9]{2}[ -][0-9]{3}[ -][0-9]{3}[ -][0-9]{2}(?![\p{L}\p{N}]|[ -][0-9])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex Grouped();
 
     // Not preceded/followed by letters or digits, and not the integer or fractional part of a decimal number.
-    [GeneratedRegex(@"(?<![\p{L}\p{N}]|[0-9]\.)[1-9][0-9]{10}(?![\p{L}\p{N}]|\.[0-9])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+    [GeneratedRegex(@"(?<![\p{L}\p{N}]|[0-9]\.)[1-9][0-9]{10}(?![\p{L}\p{N}]|\.[0-9])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex Candidate();
 }

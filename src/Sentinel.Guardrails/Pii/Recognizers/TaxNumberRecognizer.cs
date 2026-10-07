@@ -82,6 +82,6 @@ internal sealed partial class TaxNumberRecognizer : IPiiRecognizer
         return new string(buffer[..length]);
     }
 
-    [GeneratedRegex(@"(?<![\p{L}\p{N}]|[0-9]\.)[0-9]{10}(?![\p{L}\p{N}]|\.[0-9])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+    [GeneratedRegex(@"(?<![\p{L}\p{N}]|[0-9]\.)[0-9]{10}(?![\p{L}\p{N}]|\.[0-9])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex Candidate();
 }

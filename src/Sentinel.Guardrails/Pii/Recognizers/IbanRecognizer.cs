@@ -55,6 +55,6 @@ internal sealed partial class IbanRecognizer : IPiiRecognizer
     }
 
     // Country code, check digits, then up to 30 BBAN characters as groups of four with optional single spaces.
-    [GeneratedRegex(@"(?<![\p{L}\p{N}])[A-Za-z]{2}[0-9]{2}(?: ?[A-Za-z0-9]{4}){2,7}(?: ?[A-Za-z0-9]{1,3})?(?![\p{L}\p{N}])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+    [GeneratedRegex(@"(?<![\p{L}\p{N}])[A-Za-z]{2}[0-9]{2}(?: ?[A-Za-z0-9]{4}){2,7}(?: ?[A-Za-z0-9]{1,3})?(?![\p{L}\p{N}])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex Candidate();
 }
