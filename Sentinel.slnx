@@ -5,12 +5,14 @@
     <Project Path="src/Sentinel.Application/Sentinel.Application.csproj" />
     <Project Path="src/Sentinel.Infrastructure/Sentinel.Infrastructure.csproj" />
     <Project Path="src/Sentinel.Migrations.SqlServer/Sentinel.Migrations.SqlServer.csproj" />
+    <Project Path="src/Sentinel.SemanticKernel/Sentinel.SemanticKernel.csproj" />
     <Project Path="src/Sentinel.Gateway/Sentinel.Gateway.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Sentinel.Guardrails.Tests/Sentinel.Guardrails.Tests.csproj" />
     <Project Path="tests/Sentinel.Application.Tests/Sentinel.Application.Tests.csproj" />
     <Project Path="tests/Sentinel.Infrastructure.IntegrationTests/Sentinel.Infrastructure.IntegrationTests.csproj" />
+    <Project Path="tests/Sentinel.SemanticKernel.Tests/Sentinel.SemanticKernel.Tests.csproj" />
     <Project Path="tests/Sentinel.Gateway.IntegrationTests/Sentinel.Gateway.IntegrationTests.csproj" />
     <Project Path="tests/Sentinel.ArchitectureTests/Sentinel.ArchitectureTests.csproj" />
   </Folder>

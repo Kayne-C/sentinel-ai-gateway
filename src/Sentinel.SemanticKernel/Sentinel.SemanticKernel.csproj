@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Guardrails and permission-aware retrieval for applications built on Semantic Kernel. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Sentinel.Application\Sentinel.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SemanticKernel.Core" />
+    <PackageReference Include="Microsoft.Extensions.AI" />
+  </ItemGroup>
+</Project>
