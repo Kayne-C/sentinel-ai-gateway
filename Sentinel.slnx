@@ -8,6 +8,9 @@
     <Project Path="src/Sentinel.SemanticKernel/Sentinel.SemanticKernel.csproj" />
     <Project Path="src/Sentinel.Gateway/Sentinel.Gateway.csproj" />
   </Folder>
+  <Folder Name="/eval/">
+    <Project Path="eval/Sentinel.Evals/Sentinel.Evals.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Sentinel.Guardrails.Tests/Sentinel.Guardrails.Tests.csproj" />
     <Project Path="tests/Sentinel.Application.Tests/Sentinel.Application.Tests.csproj" />

@@ -24,8 +24,31 @@ internal sealed partial class NationalIdRecognizer : IPiiRecognizer
             }
         }
 
+        // The written-out form "204 332 181 48" (three groups of three, then two); both checksums still have to hold.
+        Span<char> digits = stackalloc char[11];
+        foreach (var match in Grouped().EnumerateMatches(text))
+        {
+            var length = 0;
+            foreach (var c in text.AsSpan(match.Index, match.Length))
+            {
+                if (c is >= '0' and <= '9')
+                {
+                    digits[length++] = c;
+                }
+            }
+
+            if (length == 11 && Checksums.IsValidNationalId(digits))
+            {
+                matches.Add(new PiiMatch(Type, match.Index, match.Length, Confidence));
+            }
+        }
+
         return matches;
     }
+
+    // Single spaces or dashes between the groups; not a slice of a longer grouped number (card, phone, IBAN).
+    [GeneratedRegex(@"(?<![\p{L}\p{N}]|[0-9][ -])[1-9][0-9]{2}[ -][0-9]{3}[ -][0-9]{3}[ -][0-9]{2}(?![\p{L}\p{N}]|[ -][0-9])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]
+    private static partial Regex Grouped();
 
     // Not preceded/followed by letters or digits, and not the integer or fractional part of a decimal number.
     [GeneratedRegex(@"(?<![\p{L}\p{N}]|[0-9]\.)[1-9][0-9]{10}(?![\p{L}\p{N}]|\.[0-9])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 250)]

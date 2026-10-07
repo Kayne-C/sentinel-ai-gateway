@@ -20,6 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="AI\Learned\injection-model.json" LogicalName="Sentinel.Infrastructure.AI.Learned.injection-model.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="Sentinel.Infrastructure.IntegrationTests" />
     <InternalsVisibleTo Include="Sentinel.Gateway.IntegrationTests" />
     <InternalsVisibleTo Include="Sentinel.Evals" />

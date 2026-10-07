@@ -21,9 +21,47 @@ internal sealed partial class PhoneNumberRecognizer : IPiiRecognizer
         ArgumentNullException.ThrowIfNull(text);
         var matches = new List<PiiMatch>();
         Add(matches, TurkishPrefixed(), text, PrefixedConfidence);
-        Add(matches, TurkishBareMobile(), text, BareMobileConfidence);
+        AddBareMobile(matches, text);
         Add(matches, International(), text, InternationalConfidence);
         return matches;
+    }
+
+    /// <summary>
+    /// "5xx xxx xx xx" is only a phone number when it looks like one: written with separators, or announced by a word
+    /// such as "tel" or "gsm". Ten bare digits starting with 5 are just as often an order or customer number, and redacting
+    /// those would make the text unusable without protecting anything.
+    /// </summary>
+    private void AddBareMobile(List<PiiMatch> matches, string text)
+    {
+        foreach (var match in TurkishBareMobile().EnumerateMatches(text))
+        {
+            var span = text.AsSpan(match.Index, match.Length);
+            if (span.IndexOfAny(" .-") >= 0 || HasPhoneContext(text, match.Index, match.Length))
+            {
+                matches.Add(new PiiMatch(Type, match.Index, match.Length, BareMobileConfidence));
+            }
+        }
+    }
+
+    private static readonly string[] PhoneKeywords =
+        ["tel", "gsm", "cep", "phone", "mobile", "mobil", "whatsapp", "arayın", "arayiniz", "arayabilir", "arasın", "contact", "call"];
+
+    /// <summary>A phone word shortly before ("Tel: ...") or after ("... numarasından arayın") the digits.</summary>
+    private static bool HasPhoneContext(string text, int start, int length)
+    {
+        const int Window = 24;
+        var from = Math.Max(0, start - Window);
+        var end = Math.Min(text.Length, start + length + Window);
+        var window = string.Concat(text.AsSpan(from, start - from), " ", text.AsSpan(start + length, end - start - length));
+        foreach (var keyword in PhoneKeywords)
+        {
+            if (window.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void Add(List<PiiMatch> matches, Regex regex, string text, double confidence)

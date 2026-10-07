@@ -49,6 +49,25 @@ public sealed class PhoneNumberRecognizerTests
         Assert.Empty(_recognizer.Found($"Değer: {text} kaydedildi"));
     }
 
+    [Theory]
+    [InlineData("Sipariş numaranız 5321234567 olarak oluşturuldu.")]
+    [InlineData("Takip no 5551234567 ile sorgulayın.")]
+    [InlineData("Order id 5321234567 shipped.")]
+    public void Ten_bare_digits_starting_with_5_are_not_a_phone_number_without_a_phone_context(string text)
+    {
+        Assert.Empty(_recognizer.Found(text));
+    }
+
+    [Theory]
+    [InlineData("Tel: 5321234567")]
+    [InlineData("Cep 5321234567 numaralı hat")]
+    [InlineData("WhatsApp'tan 5321234567 yazın")]
+    [InlineData("please call 5321234567 today")]
+    public void Ten_bare_digits_starting_with_5_are_a_phone_number_with_a_phone_context(string text)
+    {
+        Assert.Contains("5321234567", _recognizer.Found(text));
+    }
+
     [Fact]
     public void A_phone_number_after_a_date_is_still_found()
     {

@@ -7,6 +7,26 @@ public sealed class NationalIdRecognizerTests
     private readonly NationalIdRecognizer _recognizer = new();
 
     [Theory]
+    [InlineData("100 000 001 46")]
+    [InlineData("123-456-789-50")]
+    [InlineData("190 909 090 18")]
+    public void The_written_out_form_in_groups_of_three_is_recognized(string tckn)
+    {
+        Assert.Equal([tckn], _recognizer.Found($"T.C. Kimlik No: {tckn}."));
+    }
+
+    [Theory]
+    [InlineData("100 000 001 47")] // wrong check digit
+    [InlineData("4111 1111 1111 1111")] // a card number is not a slice of national ids
+    [InlineData("0532 123 45 67")]
+    [InlineData("1 100 000 001 46")] // part of a longer grouped number
+    [InlineData("100 000 001 46 7")]
+    public void Grouped_numbers_that_are_not_national_ids_are_left_alone(string text)
+    {
+        Assert.Empty(_recognizer.Found($"Değer: {text} yazıldı."));
+    }
+
+    [Theory]
     [InlineData("10000000146")]
     [InlineData("11111111110")]
     [InlineData("12345678950")]

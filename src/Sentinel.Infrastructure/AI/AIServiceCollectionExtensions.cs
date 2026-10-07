@@ -10,6 +10,7 @@ using Sentinel.Application.Common;
 using Sentinel.Application.Diagnostics;
 using Sentinel.Guardrails.Injection;
 using Sentinel.Infrastructure.AI.ContentSafety;
+using Sentinel.Infrastructure.AI.Learned;
 using Sentinel.Infrastructure.AI.Offline;
 
 namespace Sentinel.Infrastructure.AI;
@@ -56,7 +57,49 @@ public static class AIServiceCollectionExtensions
             AddPromptShields(services);
         }
 
+        AddLearnedInjectionDetector(services, configuration, configured);
         return services;
+    }
+
+    /// <summary>
+    /// Adds the embedding-based classifier on top of whatever detector is registered (rules, Prompt Shields), sharing the
+    /// verdict combination of the shield composite: an attack if any detector says so. It is tied to the embedding
+    /// model it was trained on, so enabling it with another provider is a startup error instead of silent nonsense.
+    /// </summary>
+    private static void AddLearnedInjectionDetector(IServiceCollection services, IConfiguration configuration, AiOptions ai)
+    {
+        var section = configuration.GetSection(LearnedInjectionOptions.Section);
+        services.AddOptions<LearnedInjectionOptions>().Bind(section);
+        if (!section.GetValue(nameof(LearnedInjectionOptions.Enabled), false))
+        {
+            return;
+        }
+
+        var model = LearnedInjectionModel.Load();
+        if (ai.Provider == AiProvider.Offline || !string.Equals(ai.EmbeddingModel, model.EmbeddingModel, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"Guardrails:Injection:Learned is trained on '{model.EmbeddingModel}' embeddings and cannot be used with provider " +
+                $"'{ai.Provider}' and embedding model '{ai.EmbeddingModel}'. Use an OpenAI-compatible provider serving that model, " +
+                "retrain the classifier (eval/train) or disable it.");
+        }
+
+        var previous = services.LastOrDefault(d => d.ServiceType == typeof(IPromptInjectionDetector) && !d.IsKeyedService);
+        if (previous is null)
+        {
+            return;
+        }
+
+        services.AddSingleton(model);
+        services.Remove(previous);
+        services.Add(new ServiceDescriptor(
+            typeof(IPromptInjectionDetector),
+            sp => new CompositePromptInjectionDetector(
+            [
+                new PreviousPromptInjectionDetector(sp, previous).Detector,
+                ActivatorUtilities.CreateInstance<LearnedInjectionDetector>(sp),
+            ]),
+            ServiceLifetime.Transient));
     }
 
     /// <summary>
