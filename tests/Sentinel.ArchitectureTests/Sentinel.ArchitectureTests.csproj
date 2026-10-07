@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\..\src\Sentinel.Gateway\Sentinel.Gateway.csproj" />
+    <ProjectReference Include="..\..\src\Sentinel.SemanticKernel\Sentinel.SemanticKernel.csproj" />
   </ItemGroup>
 </Project>
