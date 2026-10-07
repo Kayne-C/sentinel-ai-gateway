@@ -64,7 +64,7 @@ internal sealed class AskHarness
         },
     };
 
-    public PromptGuard CreateGuard() => new(Redactor, Detector, Options.Create(Pii), Options.Create(Injection));
+    public PromptGuard CreateGuard() => new(Redactor, new OutputGuard(Redactor, Options.Create(Pii)), Detector, Options.Create(Pii), Options.Create(Injection));
 
     public AskQuestionCommandHandler CreateHandler() => new(
         CreateGuard(), Embeddings, VectorSearch, Cache, Budget, TokenCounter, Router, Provider, Audit,

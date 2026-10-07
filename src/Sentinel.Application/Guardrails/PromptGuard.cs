@@ -23,6 +23,7 @@ namespace Sentinel.Application.Guardrails;
 /// </summary>
 internal sealed partial class PromptGuard(
     IPiiRedactor redactor,
+    OutputGuard outputGuard,
     IPromptInjectionDetector detector,
     IOptions<PiiOptions> piiOptions,
     IOptions<InjectionOptions> injectionOptions) : IPromptGuard
@@ -138,6 +139,32 @@ internal sealed partial class PromptGuard(
 
         return Placeholder().Replace(masked, match =>
             vault.TryReveal(match.Value, includeContext: false, out var value) ? value : match.Value);
+    }
+
+    public IOutputStream CreateOutputStream(PiiVault vault)
+    {
+        ArgumentNullException.ThrowIfNull(vault);
+        return new OutputStream(piiOptions.Value.Enabled ? outputGuard.CreateStream(vault) : null, vault);
+    }
+
+    /// <summary>Canonicalises each delta like <see cref="GuardOutput"/> does for a whole answer, then guards it.</summary>
+    private sealed class OutputStream(StreamingOutputGuard? guard, PiiVault vault) : IOutputStream
+    {
+        private readonly Dictionary<PiiType, int> _before = Snapshot(vault);
+
+        public string Push(string delta)
+        {
+            ArgumentNullException.ThrowIfNull(delta);
+            var canonical = UntrustedText.Canonicalize(delta);
+            return guard is null ? canonical : guard.Push(canonical);
+        }
+
+        public string Flush()
+        {
+            var rest = guard?.Flush() ?? string.Empty;
+            RecordRedactions(OccurrencesSince(_before, vault), "output");
+            return rest;
+        }
     }
 
     private ChatMessage SanitizeMessage(ChatMessage message, PiiVault vault)

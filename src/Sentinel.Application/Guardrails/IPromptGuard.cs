@@ -37,4 +37,20 @@ public interface IPromptGuard
     /// masked and redacts any other PII the model produced.
     /// </summary>
     string GuardOutput(string modelText, PiiVault vault);
+
+    /// <summary>
+    /// The same output rules for a streamed answer. Text is released as soon as it is safe; a tail that could still
+    /// turn into a placeholder or a PII entity is held back until more text (or <see cref="IOutputStream.Flush"/>)
+    /// arrives. For every way of splitting an answer into deltas, the concatenated output equals
+    /// <see cref="GuardOutput"/> applied to the whole answer.
+    /// </summary>
+    IOutputStream CreateOutputStream(PiiVault vault);
+}
+
+/// <summary>One streamed answer. Not thread-safe; feed it deltas in order and call <see cref="Flush"/> once at the end.</summary>
+public interface IOutputStream
+{
+    string Push(string delta);
+
+    string Flush();
 }

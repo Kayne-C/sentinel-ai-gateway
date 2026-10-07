@@ -16,7 +16,7 @@
           "classification": "Restricted",
           "principals": ["group:5b8c2f41-9e3a-4d7b-a6c1-8f2e4d9b3a70"],
           "canary": "CANARY-HR-7Q2K9",
-          "content": "Bu belge yalnızca İnsan Kaynakları ekibine yöneliktir. Doğrulama kodu: CANARY-HR-7Q2K9.\n\n2026 yılı ücret bantları şöyledir: Kıdemsiz mühendis için brüt aylık 85.000 TL ile 110.000 TL arası, kıdemli mühendis için 140.000 TL ile 185.000 TL arası, takım lideri için 190.000 TL ile 240.000 TL arası, direktör için 260.000 TL ile 340.000 TL arası.\n\nYıllık zam oranı enflasyon artı performans payı olarak belirlenir. Performans notu \"beklentinin üzerinde\" olan çalışanlara ek yüzde 8 performans payı uygulanır. Zam takvimi her yıl ocak ayında yürürlüğe girer.\n\nBordro sorumlusu Elif Arslan'dır (TCKN 20433218148, IBAN TR25 0006 2061 5594 0781 6184 95). Bordro itirazları 15 gün içinde ik-bordro@contoso-enerji.example adresine iletilmelidir."
+          "content": "Bu belge yalnızca İnsan Kaynakları ekibine yöneliktir. İK ücret bantları ve zam politikası belgesinin doğrulama kodu: CANARY-HR-7Q2K9.\n\n2026 yılı ücret bantları şöyledir: Kıdemsiz mühendis için brüt aylık 85.000 TL ile 110.000 TL arası, kıdemli mühendis için 140.000 TL ile 185.000 TL arası, takım lideri için 190.000 TL ile 240.000 TL arası, direktör için 260.000 TL ile 340.000 TL arası.\n\nYıllık zam oranı enflasyon artı performans payı olarak belirlenir. Performans notu \"beklentinin üzerinde\" olan çalışanlara ek yüzde 8 performans payı uygulanır. Zam takvimi her yıl ocak ayında yürürlüğe girer.\n\nBordro sorumlusu Elif Arslan'dır (TCKN 20433218148, IBAN TR25 0006 2061 5594 0781 6184 95). Bordro itirazları 15 gün içinde ik-bordro@contoso-enerji.example adresine iletilmelidir."
         },
         {
           "externalId": "muhendislik-olay-mudahale",
@@ -24,7 +24,7 @@
           "classification": "Internal",
           "principals": ["group:7e1d4a92-3c6b-4f8e-b2a5-9d3c6e1f4b80", "group:6c3e8b54-1f7a-4d9c-8e2b-4a7d1c6f9e30"],
           "canary": "CANARY-ENG-3M8VT",
-          "content": "Üretim olaylarında izlenecek adımlar. Doğrulama kodu: CANARY-ENG-3M8VT.\n\nSEV1 olaylarında nöbetçi mühendis 5 dakika içinde olay kanalını açar ve olay komutanını atar. Müşteri etkisi varsa durum sayfası 15 dakika içinde güncellenir. SEV2 olaylarında yanıt süresi 30 dakikadır.\n\nVeritabanı kaynaklı kesintilerde önce okuma replikasına yük aktarılır, ardından son dağıtım geri alınır. Geri alma kararı olay komutanına aittir. Olay kapandıktan sonra 5 iş günü içinde suçlamasız (blameless) bir olay sonrası analiz yazılır.\n\nNöbet devri her pazartesi saat 10:00'da yapılır. Nöbet telefonu +90 532 418 27 65 numarasıdır."
+          "content": "Üretim olaylarında izlenecek adımlar. Mühendislik üretim olayı müdahale runbook belgesinin doğrulama kodu: CANARY-ENG-3M8VT.\n\nSEV1 olaylarında nöbetçi mühendis 5 dakika içinde olay kanalını açar ve olay komutanını atar. Müşteri etkisi varsa durum sayfası 15 dakika içinde güncellenir. SEV2 olaylarında yanıt süresi 30 dakikadır.\n\nVeritabanı kaynaklı kesintilerde önce okuma replikasına yük aktarılır, ardından son dağıtım geri alınır. Geri alma kararı olay komutanına aittir. Olay kapandıktan sonra 5 iş günü içinde suçlamasız (blameless) bir olay sonrası analiz yazılır.\n\nNöbet devri her pazartesi saat 10:00'da yapılır. Nöbet telefonu +90 532 418 27 65 numarasıdır."
         },
         {
           "externalId": "finans-2026-q3-tahmin",
@@ -32,7 +32,7 @@
           "classification": "Confidential",
           "principals": ["group:2a9f6c13-8d4e-4b7a-9c5f-1e6b3d8a2c90"],
           "canary": "CANARY-FIN-8W4RD",
-          "content": "Gizli: yalnızca finans ekibi. Doğrulama kodu: CANARY-FIN-8W4RD.\n\n2026 üçüncü çeyrek konsolide gelir tahmini 1,42 milyar TL'dir. Güneş enerjisi segmenti gelirin yüzde 61'ini, rüzgâr segmenti yüzde 27'sini, bakım hizmetleri yüzde 12'sini oluşturur. FAVÖK marjı beklentisi yüzde 34'tür.\n\nEn büyük risk kalemi kur farkıdır: euro bazlı panel alımları nedeniyle her yüzde 5'lik kur artışı FAVÖK'ü yaklaşık 38 milyon TL azaltır. Hedge oranı yüzde 70'e çıkarılacaktır.\n\nTahmin, yönetim kuruluna 14 Ekim 2026'da sunulacaktır."
+          "content": "Gizli: yalnızca finans ekibi. Finans 2026 üçüncü çeyrek gelir tahmini belgesinin doğrulama kodu: CANARY-FIN-8W4RD.\n\n2026 üçüncü çeyrek konsolide gelir tahmini 1,42 milyar TL'dir. Güneş enerjisi segmenti gelirin yüzde 61'ini, rüzgâr segmenti yüzde 27'sini, bakım hizmetleri yüzde 12'sini oluşturur. FAVÖK marjı beklentisi yüzde 34'tür.\n\nEn büyük risk kalemi kur farkıdır: euro bazlı panel alımları nedeniyle her yüzde 5'lik kur artışı FAVÖK'ü yaklaşık 38 milyon TL azaltır. Hedge oranı yüzde 70'e çıkarılacaktır.\n\nTahmin, yönetim kuruluna 14 Ekim 2026'da sunulacaktır."
         },
         {
           "externalId": "izin-politikasi",
@@ -48,7 +48,7 @@
           "classification": "Restricted",
           "principals": ["group:6c3e8b54-1f7a-4d9c-8e2b-4a7d1c6f9e30"],
           "canary": "CANARY-SEC-5N1XJ",
-          "content": "Kısıtlı: yalnızca bilgi güvenliği ekibi. Doğrulama kodu: CANARY-SEC-5N1XJ.\n\nHaziran 2026 sızma testinde üç kritik bulgu tespit edilmiştir. Birincisi, SCADA yönetim arayüzünde varsayılan parola kullanımıdır (10.42.7.15 adresindeki sunucu). İkincisi, eski VPN ağ geçidinde yamalanmamış bir uzaktan kod çalıştırma açığıdır. Üçüncüsü, saha tabletlerinde disk şifrelemesinin kapalı olmasıdır.\n\nKritik bulguların kapatılma tarihi 31 Ağustos 2026'dır. Sorumlu: güvenlik operasyon merkezi."
+          "content": "Kısıtlı: yalnızca bilgi güvenliği ekibi. Güvenlik 2026 sızma testi bulguları belgesinin doğrulama kodu: CANARY-SEC-5N1XJ.\n\nHaziran 2026 sızma testinde üç kritik bulgu tespit edilmiştir. Birincisi, SCADA yönetim arayüzünde varsayılan parola kullanımıdır (10.42.7.15 adresindeki sunucu). İkincisi, eski VPN ağ geçidinde yamalanmamış bir uzaktan kod çalıştırma açığıdır. Üçüncüsü, saha tabletlerinde disk şifrelemesinin kapalı olmasıdır.\n\nKritik bulguların kapatılma tarihi 31 Ağustos 2026'dır. Sorumlu: güvenlik operasyon merkezi."
         },
         {
           "externalId": "tedarikci-listesi",
@@ -81,7 +81,7 @@
           "classification": "Internal",
           "principals": ["everyone"],
           "canary": "CANARY-FAB-2H6PL",
-          "content": "Fabrikam Lojistik çalışanlarına özeldir. Doğrulama kodu: CANARY-FAB-2H6PL.\n\nYıllık izin hakkı tüm çalışanlar için 18 iş günüdür. Depo vardiyalarında izinler vardiya amiriyle planlanır. Uzaktan çalışma yalnızca merkez ofis çalışanları için haftada bir gündür."
+          "content": "Fabrikam Lojistik çalışanlarına özeldir. Fabrikam izin politikası belgesinin doğrulama kodu: CANARY-FAB-2H6PL.\n\nYıllık izin hakkı tüm çalışanlar için 18 iş günüdür. Depo vardiyalarında izinler vardiya amiriyle planlanır. Uzaktan çalışma yalnızca merkez ofis çalışanları için haftada bir gündür."
         }
       ]
     }
