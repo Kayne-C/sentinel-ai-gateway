@@ -37,12 +37,17 @@ public sealed class MsSqlKnowledgeFixture : IAsyncLifetime
             }
             catch (Exception exception)
             {
-                // Any failure to start the container means "environment unavailable": skip, never fail.
                 await DisposeContainerAsync();
+                if (DockerAvailability.IsMissing(exception))
+                {
+                    SkipReason = $"Docker is not available ({exception.GetType().Name}: {exception.Message})";
+                    return;
+                }
+
+                // Docker is there, so a container that will not start is a real failure, not a reason to skip.
                 if (attempt == StartAttempts)
                 {
-                    SkipReason = $"SQL Server 2025 container could not be started ({exception.GetType().Name}: {exception.Message})";
-                    return;
+                    throw;
                 }
             }
         }

@@ -34,13 +34,17 @@ public sealed class RedisContainerFixture : IAsyncLifetime
             ConnectionString = _container.GetConnectionString();
             _connection = await ConnectionMultiplexer.ConnectAsync(ConnectionString);
         }
-#pragma warning disable CA1031 // Any failure to obtain a container means "no Docker here": skip, do not fail.
-        catch (Exception exception)
-#pragma warning restore CA1031
+        catch (Exception exception) when (DockerAvailability.IsMissing(exception))
         {
-            UnavailableReason = $"Docker/{Image} unavailable: {exception.GetType().Name}: {exception.Message}";
+            UnavailableReason = $"Docker is not available ({exception.GetType().Name}: {exception.Message})";
             await DisposeAsync();
             return;
+        }
+        catch
+        {
+            // Docker is there, so a container that will not start is a real failure, not a reason to skip.
+            await DisposeAsync();
+            throw;
         }
 
         // Not caught on purpose: if FT.CREATE with the production schema fails, the tests must fail, not skip.

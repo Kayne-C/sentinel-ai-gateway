@@ -46,6 +46,8 @@ internal sealed partial class RedisSemanticCache : ISemanticCache, IDisposable
     private const int InvalidationPageSize = 500;
     private const int MaxInvalidationRounds = 10_000;
     private const int MaxEvictionBatch = 1_000;
+    private const int InitialScanMaxPolls = 200;
+    private static readonly TimeSpan InitialScanPollInterval = TimeSpan.FromMilliseconds(25);
 
     private static readonly long MaxUnixMilliseconds = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds();
 
@@ -78,6 +80,16 @@ internal sealed partial class RedisSemanticCache : ISemanticCache, IDisposable
         _keyPrefix = settings.KeyPrefix;
     }
 
+    /// <summary>
+    /// Lists the cache keys that cite one document: a plain Redis set updated in the same MULTI/EXEC as the entry.
+    /// Invalidation is a security control (an answer built from a document whose ACL just changed must go away), so it
+    /// must not depend on the query index, which is maintained asynchronously and can briefly drop an entry while it
+    /// is being re-indexed. The set is plain keyspace state: read-your-writes. The key starts with a marker
+    /// that is not <see cref="SemanticCacheOptions.KeyPrefix"/>, so the index never sees it. The tenant id is
+    /// followed by a fixed-width document id, which keeps (tenant, document) pairs unambiguous.
+    /// </summary>
+    private RedisKey DocumentSetKey(string tenantId, Guid documentId) => $"~docs~{_keyPrefix}{tenantId}:{documentId:N}";
+
     public async Task<CacheCandidate?> FindAsync(SemanticCacheScope scope, ReadOnlyMemory<float> embedding, CancellationToken cancellationToken)
     {
         VectorMath.EnsureDimensions(embedding, nameof(embedding));
@@ -100,7 +112,10 @@ internal sealed partial class RedisSemanticCache : ISemanticCache, IDisposable
             // Expired entries are excluded inside the pre-filter as well, so they cannot shadow a valid neighbour.
             var notBefore = (_timeProvider.GetUtcNow() - settings.Ttl).ToUnixTimeMilliseconds();
             var filter = $"{ScopeFilter(scope)} @{CreatedField}:[({notBefore.ToString(CultureInfo.InvariantCulture)} +inf]";
-            var query = new Query($"({filter})=>[KNN 1 @{EmbeddingField} ${VectorParameter} AS {DistanceField}]")
+            // ADHOC_BF: exact distance computation over the entries that pass the filter. The default policy may walk the
+            // HNSW graph first and filter afterwards, which can miss an existing entry of this scope (recall, not
+            // leakage: the filter always applies). A scope holds at most MaxEntriesPerScope entries, so scanning it is cheap.
+            var query = new Query($"({filter})=>[KNN 1 @{EmbeddingField} ${VectorParameter} HYBRID_POLICY ADHOC_BF AS {DistanceField}]")
                 .AddParam(VectorParameter, VectorMath.ToLittleEndianBytes(embedding.Span))
                 .SetSortBy(DistanceField, ascending: true)
                 .ReturnFields(TenantField, NamespaceField, TierField, CreatedField, PayloadField, DistanceField)
@@ -157,11 +172,20 @@ internal sealed partial class RedisSemanticCache : ISemanticCache, IDisposable
             // One MULTI/EXEC: an entry never exists without its TTL, even if the connection drops in between.
             cancellationToken.ThrowIfCancellationRequested();
             var transaction = _database.CreateTransaction();
-            var write = transaction.HashSetAsync(key, fields);
-            var expire = transaction.KeyExpireAsync(key, settings.Ttl);
+            var pending = new List<Task>
+            {
+                transaction.HashSetAsync(key, fields),
+                transaction.KeyExpireAsync(key, settings.Ttl),
+            };
+            foreach (var documentId in answer.Sources.Select(source => source.DocumentId).Distinct())
+            {
+                var setKey = DocumentSetKey(scope.TenantId, documentId);
+                pending.Add(transaction.SetAddAsync(setKey, key.ToString()));
+                pending.Add(transaction.KeyExpireAsync(setKey, settings.Ttl));
+            }
+
             await transaction.ExecuteAsync();
-            await write;
-            await expire;
+            await Task.WhenAll(pending);
 
             await EvictOverflowAsync(scope, Math.Max(1, settings.MaxEntriesPerScope));
         }
@@ -185,8 +209,20 @@ internal sealed partial class RedisSemanticCache : ISemanticCache, IDisposable
         {
             await EnsureIndexAsync(cancellationToken);
 
-            var filter = $"{RedisTag.Filter(TenantField, tenantId)} {RedisTag.Filter(DocumentsField, documentId.ToString("D"))}";
+            // 1. Authoritative, read-your-writes: every entry that cited the document is listed in its set.
             long removed = 0;
+            var setKey = DocumentSetKey(tenantId, documentId);
+            var members = await _database.SetMembersAsync(setKey);
+            if (members.Length > 0)
+            {
+                removed += await _database.KeyDeleteAsync(members.Select(member => (RedisKey)(string)member!).ToArray());
+
+                // Remove only what was read, so an entry stored concurrently keeps its set membership.
+                await _database.SetRemoveAsync(setKey, members);
+            }
+
+            // 2. Safety net through the index for entries without a set (written by an older version, set expired).
+            var filter = $"{RedisTag.Filter(TenantField, tenantId)} {RedisTag.Filter(DocumentsField, documentId.ToString("D"))}";
             var offset = 0;
             for (var round = 0; round < MaxInvalidationRounds; round++)
             {
@@ -248,12 +284,42 @@ internal sealed partial class RedisSemanticCache : ISemanticCache, IDisposable
                 LogIndexExists(_logger, _indexName);
             }
 
+            await WaitForInitialScanAsync(cancellationToken);
             _indexReady = true;
         }
         finally
         {
             _indexGate.Release();
         }
+    }
+
+    /// <summary>
+    /// FT.CREATE returns at once and scans the existing keyspace in the background. A hash written while that scan is
+    /// running can be indexed twice (delete + add), so for a moment it vanishes from the results. That is harmless for
+    /// a cache (a miss) but makes the first lookups after a start or an index re-creation unreliable, so wait — a
+    /// bounded time, never failing — until the scan has finished.
+    /// </summary>
+    private async Task WaitForInitialScanAsync(CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; attempt < InitialScanMaxPolls; attempt++)
+        {
+            try
+            {
+                var info = await _search.InfoAsync(_indexName);
+                if (info.Indexing == 0)
+                {
+                    return;
+                }
+            }
+            catch (RedisServerException)
+            {
+                return; // The index is gone again or INFO is unsupported: nothing to wait for.
+            }
+
+            await Task.Delay(InitialScanPollInterval, cancellationToken);
+        }
+
+        LogInitialScanSlow(_logger, _indexName);
     }
 
     internal static bool IsRedisFailure(Exception exception) =>
@@ -381,6 +447,9 @@ internal sealed partial class RedisSemanticCache : ISemanticCache, IDisposable
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Semantic cache index {IndexName} already exists")]
     private static partial void LogIndexExists(ILogger logger, string indexName);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Semantic cache index {IndexName} is still scanning existing keys; continuing without waiting further")]
+    private static partial void LogInitialScanSlow(ILogger logger, string indexName);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Semantic cache lookup failed; treating it as a miss")]
     private static partial void LogLookupFailed(ILogger logger, Exception exception);

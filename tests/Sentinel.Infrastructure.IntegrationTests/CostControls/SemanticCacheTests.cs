@@ -90,6 +90,49 @@ public sealed class RedisSemanticCacheTests(RedisContainerFixture redis) : Seman
         Assert.Equal("survives", hit?.Answer.Question);
     }
 
+    [Fact]
+    public async Task Invalidation_does_not_depend_on_the_search_index_having_caught_up()
+    {
+        // The query index lags writes by a few milliseconds. Invalidating right after storing must still remove every
+        // entry: otherwise an answer built from a document whose ACL just changed could become searchable afterwards.
+        var options = Isolated(new SemanticCacheOptions());
+        var cache = Create(options);
+        var documentId = Guid.NewGuid();
+        for (var i = 0; i < 40; i++)
+        {
+            await cache.StoreAsync(Scope(), TestVectors.Random(100 + i), Answer($"q{i}", documentId), CancellationToken.None);
+            await cache.InvalidateDocumentAsync(Scope().TenantId, documentId, CancellationToken.None);
+        }
+
+        await Task.Delay(300); // any late indexing has settled by now
+        Assert.Empty(await KeysAsync(options.KeyPrefix));
+        for (var i = 0; i < 40; i++)
+        {
+            Assert.Null(await cache.FindAsync(Scope(), TestVectors.Random(100 + i), CancellationToken.None));
+        }
+    }
+
+    [Fact]
+    public async Task Entries_are_listed_per_document_in_a_set_that_expires_with_them()
+    {
+        var options = Isolated(new SemanticCacheOptions { Ttl = TimeSpan.FromHours(2) });
+        var cache = Create(options);
+        var first = Guid.NewGuid();
+        var second = Guid.NewGuid();
+        await cache.StoreAsync(Scope(), TestVectors.Random(1), Answer("q", first, second), CancellationToken.None);
+        var entry = Assert.Single(await KeysAsync(options.KeyPrefix));
+
+        var db = redis.Connection.GetDatabase();
+        foreach (var documentId in new[] { first, second })
+        {
+            var setKey = (RedisKey)$"~docs~{options.KeyPrefix}{Scope().TenantId}:{documentId:N}";
+            Assert.Equal(entry.ToString(), Assert.Single(await db.SetMembersAsync(setKey)).ToString());
+            Assert.InRange((await db.KeyTimeToLiveAsync(setKey))!.Value, TimeSpan.FromHours(2) - TimeSpan.FromMinutes(1), TimeSpan.FromHours(2));
+        }
+
+        Assert.Empty(await redis.Connection.GetServers()[0].KeysAsync(pattern: options.KeyPrefix + "~docs~*").ToListAsync());
+    }
+
     protected override ISemanticCache CreateCache(SemanticCacheOptions options) => Create(Isolated(options));
 
     private RedisSemanticCache Create(SemanticCacheOptions options)

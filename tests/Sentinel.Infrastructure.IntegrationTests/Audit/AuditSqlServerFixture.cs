@@ -38,17 +38,34 @@ public sealed class AuditSqlServerFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        try
+        // SQL Server can exit during start-up when the host is briefly short of memory (other containers starting);
+        // one retry turns most of those into a real run.
+        for (var attempt = 1; ; attempt++)
         {
-            _container = new MsSqlBuilder(Image)
-                .WithEnvironment("MSSQL_MEMORY_LIMIT_MB", "2048")
-                .Build();
-            await _container.StartAsync();
-        }
-        catch (Exception exception)
-        {
-            SkipReason = $"SQL Server 2025 container unavailable ({exception.GetType().Name}: {exception.Message})";
-            return;
+            try
+            {
+                _container = new MsSqlBuilder(Image)
+                    .WithEnvironment("MSSQL_MEMORY_LIMIT_MB", "2048")
+                    .Build();
+                using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                await _container.StartAsync(timeout.Token);
+                break;
+            }
+            catch (Exception exception)
+            {
+                await DisposeAsync();
+                if (DockerAvailability.IsMissing(exception))
+                {
+                    SkipReason = $"Docker is not available ({exception.GetType().Name}: {exception.Message})";
+                    return;
+                }
+
+                // Docker is there, so a container that will not start is a real failure, not a reason to skip.
+                if (attempt == 2)
+                {
+                    throw;
+                }
+            }
         }
 
         ConnectionString = new SqlConnectionStringBuilder(_container.GetConnectionString()) { InitialCatalog = DatabaseName }.ConnectionString;
